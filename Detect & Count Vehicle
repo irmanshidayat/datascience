@@ -1,0 +1,74 @@
+drive.mount('/content/drive')
+file_path = '/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Vehicle/mobiltol.jpg'
+
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Mount Google Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Path ke gambar lokal di Google Drive
+file_path = '/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Vehicle/mobiltol.jpg'
+
+# Membaca gambar dari path lokal
+image = Image.open(file_path)
+
+# Mengubah ukuran gambar
+image = image.resize((450, 250))
+
+# Konversi gambar menjadi array numpy (opsional)
+image_arr = np.array(image)
+
+# Menampilkan gambar di Colab menggunakan matplotlib
+plt.imshow(image)
+plt.axis('off')  # Hilangkan axis untuk tampilan yang lebih bersih
+plt.show()
+
+import cv2
+import matplotlib.pyplot as plt
+
+# Mount Google Drive
+from google.colab import drive
+drive.mount('/content/drive', force_remount=True)
+
+# Path ke file Haar Cascade XML
+# car_cascade_src = '/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Vehicle/cars.xml'
+
+# Path ke gambar
+image_path = '/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Vehicle/mobiltol.jpg'
+
+# Membuat CascadeClassifier
+car_cascade = cv2.CascadeClassifier(car_cascade_src)
+
+# Membaca gambar
+image = cv2.imread(image_path)
+if image is None:
+    raise FileNotFoundError("Gambar tidak ditemukan di path yang diberikan.")
+
+# Konversi ke grayscale (Cascade Classifier bekerja pada gambar grayscale)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Deteksi mobil (meningkatkan sensitivitas)
+cars = car_cascade.detectMultiScale(
+    gray,
+    scaleFactor=1.05,  # Meningkatkan sensitivitas dengan memperkecil faktor skala
+    minNeighbors=2,    # Mengurangi jumlah tetangga untuk deteksi lebih banyak objek
+    minSize=(30, 30)   # Ukuran minimum kotak deteksi (dapat disesuaikan)
+)
+
+# Menghitung jumlah mobil yang terdeteksi
+num_cars = len(cars)
+print(f"Jumlah mobil yang terdeteksi: {num_cars}")
+
+# Gambar kotak di sekitar mobil yang terdeteksi
+for (x, y, w, h) in cars:
+    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+# Tampilkan gambar dengan matplotlib
+plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+plt.axis('off')
+plt.show()
+
+
