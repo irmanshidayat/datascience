@@ -1,0 +1,91 @@
+import cv2
+import time
+
+# Load video and classifier
+cap = cv2.VideoCapture('/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Car Video/video.avi')
+car_cascade = cv2.CascadeClassifier('/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Detect & Count Car Video/cars.xml')
+
+# Get video properties
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+output_path = '/content/vehicle_detection_output.avi'
+
+# Initialize video writer
+out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (frame_width, frame_height))
+
+# Initialize variables
+vehicle_count = 0
+tracked_vehicles = []
+threshold_distance = 50  # Minimum distance to consider the same vehicle
+last_count_time = time.time()  # Time of the last vehicle count update
+count_interval = 1  # Interval in seconds between updates
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break  # Exit the loop if no frame is captured
+
+    # Convert frame to grayscale for detection
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Detect vehicles
+    cars = car_cascade.detectMultiScale(gray, 1.1, 1)
+
+    # Draw rectangles around detected vehicles and count them
+    new_tracked_vehicles = []
+    for (x, y, w, h) in cars:
+        # Calculate the center of the detected vehicle
+        center_x, center_y = x + w // 2, y + h // 2
+
+        # Check if the vehicle is already tracked
+        is_new_vehicle = True
+        for (tracked_x, tracked_y) in tracked_vehicles:
+            distance = ((center_x - tracked_x) ** 2 + (center_y - tracked_y) ** 2) ** 0.5
+            if distance < threshold_distance:
+                is_new_vehicle = False
+                break
+
+        if is_new_vehicle:
+            new_tracked_vehicles.append((center_x, center_y))
+
+        # Draw rectangle for the detected vehicle
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+    # Update tracked vehicles
+    tracked_vehicles = new_tracked_vehicles
+
+    # Update the vehicle count only if the interval has passed
+    current_time = time.time()
+    if current_time - last_count_time >= count_interval:
+        vehicle_count += len(new_tracked_vehicles)
+        last_count_time = current_time
+
+    # Display the count on the frame
+    cv2.putText(frame, f'Vehicles: {vehicle_count}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    # Write the processed frame to the output video
+    out.write(frame)
+
+cap.release()
+out.release()
+
+print(f'Total vehicles counted: {vehicle_count}')
+
+# Convert video to MP4 for compatibility
+!ffmpeg -i /content/vehicle_detection_output.avi -vcodec libx264 /content/vehicle_detection_output.mp4
+
+# Display the video in Colab
+from IPython.display import HTML
+from base64 import b64encode
+
+# Encode video to base64
+video_path = '/content/vehicle_detection_output.mp4'
+video_encoded = b64encode(open(video_path, 'rb').read()).decode('ascii')
+
+# Display video
+HTML(f"""
+<video width="640" height="480" controls>
+    <source src="data:video/mp4;base64,{video_encoded}" type="video/mp4">
+</video>
+""")
