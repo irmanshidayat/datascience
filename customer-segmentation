@@ -1,0 +1,139 @@
+// Mengimpor Library
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score,classification_report,confusion_matrix
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.read_csv('/content/drive/MyDrive/Babastudio/LSP AI/Latihan AI/Data Science/Customer Segmentation/train.csv')
+df.head()
+
+// Analisis Data
+// Memeriksa Tipe Data
+
+#info
+df.info()
+
+df['Segmentation'].value_counts()
+
+#describe
+df.describe()
+
+// Memeriksa Nama Kolom
+col= df.columns
+col
+
+// Memeriksa nilai nol
+df.shape
+
+df.isnull().sum()
+
+df= df.dropna()
+
+df.isnull().sum()
+
+// Analisis Data
+plt.figure(1 , figsize = (15 , 6))
+n = 0
+for x in ['Age' , 'Work_Experience' , 'Family_Size']:
+    n += 1
+    plt.subplot(1 , 3 , n)
+    plt.subplots_adjust(hspace =0.5 , wspace = 0.5)
+    sns.distplot(df[x] , bins = 20)
+    plt.title('Distplot of {}'.format(x))
+plt.show()
+
+print(df[['Age', 'Work_Experience', 'Family_Size', 'Var_1']].dtypes)
+
+df['Var_1'] = pd.to_numeric(df['Var_1'], errors='coerce')
+
+df = df.fillna(0)  //# Ganti NaN dengan 0 atau nilai lain yang sesuai
+
+// # check for segmentation columns
+df.groupby('Segmentation')[[ 'Age','Work_Experience','Family_Size']].agg('mean')
+
+df.groupby('Segmentation')[[ 'Age','Work_Experience','Family_Size']].agg('mean').plot(kind = 'bar')
+
+df.groupby('Gender')[['Age','Work_Experience','Family_Size']].agg('mean')
+
+df.groupby('Gender')[['Age','Work_Experience','Family_Size']].agg('mean').plot(kind = 'bar')
+
+// # we will check for profession by gender
+df.groupby(['Profession','Gender'])[['Gender']].count()
+
+df.groupby(['Profession','Gender'])[['Gender']].count().plot(kind= 'bar')
+
+// # check the spending score by Gender
+df.groupby(['Gender','Spending_Score'])[['Spending_Score']].count()
+
+df.groupby(['Gender','Spending_Score'])[['Spending_Score']].count().plot(kind = 'barh')
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(1, figsize=(15, 7))
+n = 0
+for x in ["Age", "Work_Experience", "Family_Size"]:
+    for y in ["Age", "Work_Experience", "Family_Size"]:
+        n += 1
+        plt.subplot(3, 3, n)
+        plt.subplots_adjust(hspace=0.5, wspace=0.5)
+        sns.regplot(x=x, y=y, data=df)
+        plt.ylabel(y.split()[0] if len(y.split()) > 1 else y)
+
+plt.show()
+
+sns.pairplot(df)
+
+// Memeriksa korelasi
+print(df.dtypes)
+
+numeric_df = df.select_dtypes(include=['float64', 'int64'])
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Pilih hanya kolom numerik
+numeric_df = df.select_dtypes(include=['float64', 'int64'])
+
+# Hitung korelasi
+correlation_matrix = numeric_df.corr()
+
+# Visualisasikan heatmap
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+plt.show()
+
+df['Gender'] = df['Gender'].replace({'Male': 0, 'Female': 1})  //# Contoh manual encoding
+
+df = df.dropna()
+
+df
+
+// Moving with Supervised Approach
+// Data Preprocessing
+// One Hot Encoding
+
+var = ['Gender', 'Ever_Married', 'Graduated', 'Profession', 'Spending_Score', 'Var_1']
+df_dummies = pd.get_dummies(df,columns=var)
+print(df_dummies.columns.tolist())
+
+le = LabelEncoder()
+df_dummies['Segmentation'] = le.fit_transform(df_dummies['Segmentation'])
+
+plt.figure(figsize = (15,5))
+plt.subplot(1,2,1)
+df['Segmentation'].value_counts().plot(kind = 'bar')
+// # plt.subplot(1,2,2)
+// # df_dummies['Segmentation'].value_counts().plot(kind = 'bar')
+plt.show()
